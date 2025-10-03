@@ -98,7 +98,7 @@ class _MainShellState extends State<MainShell> {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Swachh App'),
-              automaticallyImplyLeading: false, // No hamburger menu on web
+              automaticallyImplyLeading: false,
               actions: [
                 IconButton(
                   icon: Icon(Provider.of<ThemeNotifier>(context).isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
@@ -108,7 +108,15 @@ class _MainShellState extends State<MainShell> {
                   onPressed: _handleLogout,
                   icon: const Icon(Icons.logout),
                   label: const Text('Logout'),
-                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onPrimary),
+                  
+                  // --- THIS IS THE FIX ---
+                  // We check the theme's brightness to set the correct color.
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white // Use white color in Dark Mode
+                        : Colors.black87, // Use a dark color in Light Mode
+                  ),
+                  // --- END OF FIX ---
                 ),
                 const SizedBox(width: 16),
               ],
