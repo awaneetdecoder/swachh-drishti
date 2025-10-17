@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: const Color.fromARGB(255, 49, 249, 86).withOpacity(0.4), blurRadius: 20, spreadRadius: 2)],
+                    boxShadow: [BoxShadow(color: const Color.fromARGB(255, 238, 7, 7).withOpacity(0.4), blurRadius: 20, spreadRadius: 2)],
                   ),
                   child: const AppLogo(radius: 60, iconSize: 60),
                 ),
