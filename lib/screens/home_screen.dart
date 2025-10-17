@@ -23,7 +23,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  '"Cleanliness is next to Godliness. Be the change you wish to see."',
+                  '"Cleanliness is next to Godliness."',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 18, fontStyle: FontStyle.normal, color: Theme.of(context).textTheme.bodySmall?.color),
                 ),
