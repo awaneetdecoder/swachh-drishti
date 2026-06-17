@@ -1,6 +1,6 @@
 # Swachh Drishti 🧹✨
 
-![App Demo GIF](link_to_your_demo_gif_or_screenshot.gif)
+
 
 ## 📖 Overview
 
@@ -62,15 +62,3 @@ To get a local copy up and running, follow these simple steps.
     ```sh
     flutter run
     ```
-
-## ✨ Creating a Visual Demo
-
-A short video or GIF is the best way to show off your app.
-
-1.  **Record your screen:** Use your phone's screen recorder or an emulator to record a 30-60 second video of you using the app's main features.
-2.  **Convert to GIF:** Use a free online tool like [Ezgif](https://ezgif.com/video-to-gif) to convert your video into a high-quality GIF.
-3.  **Upload to GitHub:** Add the GIF to your repository and update the link at the top of this README.
-
-
-
-By filling this out, you will have a professional-looking README that clearly explains what your app does, how it's built, and how others can use it. This will make a huge difference to anyone (like a recruiter) visiting your GitHub profile.
