@@ -30,6 +30,8 @@ class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
 
   // State variables to hold the selected image and manage loading indicators.
   File? _imageFile;
+  double? _capturedLatitude;
+  double? _capturedLongitude;
   bool _isFetchingLocation = false;
   bool _isSubmitting = false;
 
@@ -60,6 +62,8 @@ class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
 
       // Get the current position.
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _capturedLatitude = position.latitude;
+      _capturedLongitude = position.longitude;
       // Convert coordinates into an address (reverse geocoding).
       List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
 
@@ -115,8 +119,12 @@ class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
       // These keys must match what the backend expects.
       request.fields['address'] = _locationController.text;
       request.fields['description'] = _problemController.text;
-      request.fields['latitude'] = '0.0'; // Placeholder, would be replaced by real coordinates
-      request.fields['longitude'] = '0.0'; // Placeholder
+      if (_capturedLatitude == null || _capturedLongitude == null) {
+        _showError("Please fetch your location first.");
+        return;
+      }
+      request.fields['latitude'] = _capturedLatitude.toString();
+      request.fields['longitude'] = _capturedLongitude.toString();
 
       // 4. Add the image file.
       // The key 'image' must match what the backend's Multer middleware expects.
