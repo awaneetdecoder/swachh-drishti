@@ -23,5 +23,11 @@ class ApiConfig {
   
   /// The endpoint for getting the user's own reports.
   static const String myReports = '$_baseUrl/api/reports/myreports';
+
+  static const String issues       = '$_baseUrl/api/issues';
+  static const String allIssues    = '$_baseUrl/api/issues/all';
+  static const String issueStats   = '$_baseUrl/api/issues/stats';
+  static const String upvote       = '$_baseUrl/api/issues'; // + /{id}/upvote
+  static const String resolveIssue = '$_baseUrl/api/issues'; // + /{id}/resolve
 }
 
