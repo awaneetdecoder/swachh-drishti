@@ -10,19 +10,19 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeNotifier(),
-      child: const SwachhApp(),
+      child: const CivicNexusApp(),
     ),
   );
 }
 
-class SwachhApp extends StatefulWidget {
-  const SwachhApp({super.key});
+class CivicNexusApp extends StatefulWidget {
+  const CivicNexusApp({super.key});
 
   @override
-  State<SwachhApp> createState() => _SwachhAppState();
+  State<CivicNexusApp> createState() => _CivicNexusAppState();
 }
 
-class _SwachhAppState extends State<SwachhApp> {
+class _CivicNexusAppState extends State<CivicNexusApp> {
   // A variable to hold the result of our login check.
   late Future<bool> _isLoggedInFuture;
 
@@ -45,7 +45,7 @@ class _SwachhAppState extends State<SwachhApp> {
     return Consumer<ThemeNotifier>(
       builder: (context, themeNotifier, child) {
         return MaterialApp(
-          title: 'Swachh App',
+          title: 'CivicNexus',
           debugShowCheckedModeBanner: false,
           // Your existing light theme
           theme: ThemeData(

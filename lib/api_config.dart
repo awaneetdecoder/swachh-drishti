@@ -1,33 +1,27 @@
-
-
-/// Provides the correct API endpoints for different platforms.
 class ApiConfig {
-  /// The base URL for the backend server.
-  ///
-  /// This intelligently switches between 'localhost' for web builds
-  /// and the special '10.0.2.2' IP for the Android emulator.
-  /// The port MUST match the one your Node.js server is using.
-  static const String _baseUrl = 'https://swachh-drishti-backend.onrender.com';
+  // WHY localhost for now:
+  // Backend runs on your machine during development
+  // After deployment, change this ONE line to your Render URL
+  // Everything else updates automatically
+  static const String _baseUrl = 'http://10.0.2.2:8080';
+  // NOTE: 10.0.2.2 = Android emulator's way to reach your PC's localhost
+  // For physical device: use your PC's local IP like 192.168.1.5:8080
+  // For web: use http://localhost:8080
 
-  /// The endpoint for user login.
-  static const String login = '$_baseUrl/api/auth/login';
+  // Auth endpoints
+  static const String login   = '$_baseUrl/api/auth/login';
+  static const String signup  = '$_baseUrl/api/auth/signup';
+  static const String getMe   = '$_baseUrl/api/auth/me';
 
-  /// The endpoint for user signup.
-  static const String signup = '$_baseUrl/api/auth/signup';
-
-  /// The endpoint for submitting reports.
-  static const String reports = '$_baseUrl/api/reports/';
-  
-  /// The endpoint for getting the current user's profile.
-  static const String getMe = '$_baseUrl/api/auth/me';
-  
-  /// The endpoint for getting the user's own reports.
+  // Old report endpoints (keep for backward compatibility)
   static const String myReports = '$_baseUrl/api/reports/myreports';
 
-  static const String issues       = '$_baseUrl/api/issues';
-  static const String allIssues    = '$_baseUrl/api/issues/all';
-  static const String issueStats   = '$_baseUrl/api/issues/stats';
-  static const String upvote       = '$_baseUrl/api/issues'; // + /{id}/upvote
-  static const String resolveIssue = '$_baseUrl/api/issues'; // + /{id}/resolve
-}
+  // NEW issue endpoints
+  static const String submitIssue = '$_baseUrl/api/issues';
+  static const String allIssues   = '$_baseUrl/api/issues/all';
+  static const String myIssues    = '$_baseUrl/api/issues/mine';
 
+  // Dynamic endpoints — built at runtime with issue ID
+  // Usage: '${ApiConfig.issueBase}/42/upvote'
+  static const String issueBase = '$_baseUrl/api/issues';
+}

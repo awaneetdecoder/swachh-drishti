@@ -113,7 +113,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 80),
                       const AppLogo(radius: 50, iconSize: 50),
                       const SizedBox(height: 16),
-                      Text('Welcome to Swachh', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                      Text('Welcome to CivicNexus', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                       const SizedBox(height: 40),
                       TextFormField(
                         controller: _emailController,

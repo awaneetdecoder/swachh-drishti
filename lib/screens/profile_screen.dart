@@ -11,7 +11,15 @@ import '../widget/app_logo.dart';
 class UserModel {
   final String name;
   final String email;
-  UserModel({required this.name, required this.email});
+  final int coins;
+  final int totalReports;
+
+  UserModel({
+    required this.name,
+    required this.email,
+    required this.coins,
+    required this.totalReports,
+  });
 }
 
 class ProfileScreen extends StatefulWidget {
@@ -46,7 +54,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return UserModel(name: data['name'], email: data['email']);
+        return UserModel(
+          name: data['name'] ?? '',
+          email: data['email'] ?? '',
+          coins: data['coins'] ?? 0,
+          totalReports: data['totalReports'] ?? 0,
+        );
       } else {
         // Handle error
         return null;
@@ -94,12 +107,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text("Your Swachh-Coin Balance", style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodySmall?.color)),
                         const SizedBox(height: 12),
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.monetization_on, color: Colors.amber, size: 40),
                             SizedBox(width: 12),
-                            Text("150", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+                            Text("${user.coins}", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold))
                           ],
                         ),
                         // ... rest of the card ...

@@ -21,7 +21,7 @@ class GarbageReporterScreen extends StatefulWidget {
 
 class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
   // API endpoint from our central configuration.
-  final String _reportUrl = ApiConfig.reports;
+  final String _reportUrl = ApiConfig.submitIssue;
 
   // Form key and controllers for managing the form's state.
   final _formKey = GlobalKey<FormState>();
@@ -133,10 +133,18 @@ class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
       // 5. Send the request and wait for the response.
       var response = await request.send();
 
-      if (response.statusCode == 201) { // 201 Created
-        final responseBody = await response.stream.bytesToString();
-        final responseData = jsonDecode(responseBody);
-        _showSuccessDialog(responseData['analysisResult'] ?? 'No analysis result received.');
+      if (response.statusCode == 201) {
+  final responseBody = await response.stream.bytesToString();
+  final data = jsonDecode(responseBody);
+  
+  // Show what Gemini found
+  _showSuccessDialog(
+    issueType: data['issueType'] ?? 'OTHER',
+    severity: data['severity'] ?? 'MEDIUM',
+    department: data['responsibleDepartment'] ?? 'Municipal Corporation',
+    advisory: data['citizenAdvisory'] ?? 'Issue recorded.',
+    coins: data['coinsAwarded'] ?? 0,
+  );
       } else {
         final errorBody = await response.stream.bytesToString();
         _showError("Failed to submit report: $errorBody");
@@ -155,40 +163,85 @@ class _GarbageReporterScreenState extends State<GarbageReporterScreen> {
   }
   
   /// Displays a success dialog with the AI analysis result.
-  void _showSuccessDialog(String analysisResult) {
-     showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-              title: const Text('Report Submitted Successfully'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    const Text('Your report has been received and is pending review.', style: TextStyle(fontSize: 16)),
-                    const SizedBox(height: 16),
-                    const Text('AI Verification:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(analysisResult),
-                    const SizedBox(height: 16),
-                    Image.file(_imageFile!),
-                  ],
-                ),
+void _showSuccessDialog({
+  required String issueType,
+  required String severity,
+  required String department,
+  required String advisory,
+  required int coins,
+}) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Issue Reported Successfully! ✅'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Coins awarded
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    // Reset the form for the next report.
-                    _formKey.currentState?.reset();
-                    setState(() {
-                      _imageFile = null;
-                      _locationController.clear();
-                      _problemController.clear();
-                    });
-                  },
-                ),
-              ],
-            ));
-  }
+              child: Row(
+                children: [
+                  const Icon(Icons.monetization_on, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  Text('+$coins Swachh Coins earned!',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // AI Analysis
+            Text('AI Analysis', 
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary)),
+            const SizedBox(height: 8),
+            _infoRow('Issue Type', issueType.replaceAll('_', ' ')),
+            _infoRow('Severity', severity),
+            _infoRow('Department', department.replaceAll('_', ' ')),
+            const SizedBox(height: 12),
+            Text('Advisory: $advisory',
+              style: const TextStyle(fontStyle: FontStyle.italic)),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('OK'),
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            setState(() {
+              _imageFile = null;
+              _capturedLatitude = null;
+              _capturedLongitude = null;
+              _locationController.clear();
+              _problemController.clear();
+            });
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _infoRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      children: [
+        Text('$label: ', 
+          style: const TextStyle(fontWeight: FontWeight.w600)),
+        Expanded(child: Text(value)),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
