@@ -1,172 +1,228 @@
-# SwachhDrishti 🧹✨
+# CivicNexus — Flutter App
 
-### Citizen garbage reporting with AI-verified rewards
+![Flutter](https://img.shields.io/badge/Flutter-3.32-02569B?logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-3.8-0175C2?logo=dart&logoColor=white)
+![Gemini](https://img.shields.io/badge/AI-Gemini%201.5%20Flash-8E44AD)
+![Status](https://img.shields.io/badge/status-core%20complete-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-SwachhDrishti is a personal project — citizens photograph garbage in their area, and the backend classifies the garbage type and severity, then awards reward coins only if the photo is confirmed to actually contain garbage. Built solo, single role (citizen), no separate admin or web dashboard.
+**Mobile frontend for CivicNexus — the AI-powered civic issue reporting platform. Citizens photograph a problem; the app handles GPS capture, AI categorization, and real-time status, with no manual form-filling.**
 
-**Backend repo:** [swachh-drishti-backend](https://github.com/awaneetdecoder/swachh-drishti-backend)
+⚙️ **Companion repo — Spring Boot backend:** [`civicnexus-backend`](https://github.com/awaneetdecoder/civicnexus-backend)
 
----
-
-## The idea
-
-Most citizen complaint apps just collect reports with no way to prioritize them, and nothing stops someone from submitting a fake or empty photo to farm rewards. This project tries to solve both with one pipeline: every photo goes through Google Cloud Vision API's label detection, and the resulting labels drive both the severity ranking and the reward gate.
-
-Google Cloud Vision API only returns raw labels (e.g. "waste", "plastic", "debris") with confidence scores — it does not natively classify garbage type or severity. That mapping is logic I wrote myself on top of the raw API output.
+> **Architecture note.** This app talks to the full Spring Boot backend above. For the hackathon's mandatory live demo, the same Gemini-driven flow — photo analysis, severity scoring, map, community upvoting, gamified rewards — also ships as a Firebase-hosted web client, built to deploy reliably inside a hard deadline. **Live demo:** [civicnexus-94d0b.web.app](https://civicnexus-94d0b.web.app)
 
 ---
 
-## How severity scoring actually works
-
-1. Image saved with a UUID filename
-2. Sent to Vision API → returns labels + confidence scores
-3. My own mapping turns labels into a garbage type:
-   - plastic / bottle / bag → **Plastic**
-   - organic / food → **Organic**
-   - electronic / circuit → **E-Waste**
-   - anything else garbage-related → **Mixed**
-4. My own mapping turns labels into a severity score (1–5):
-   - litter → 1, debris → 2, garbage/pollution → 3, dump → 4, landfill → 5
-   - adjusted up based on label count and confidence
-5. Coins awarded by severity level: 5 / 10 / 20 / 35 / 50 for levels 1–5
-6. **Reward gate:** coins are only awarded if a garbage-related label was actually detected in the photo — this is what blocks fake or empty submissions
-
----
-
-## Features
-
-- Photo + GPS report submission
-- Garbage type and severity classification (logic above)
-- AI-verified coin rewards
-- Report status: Pending → In-Progress → Resolved (shown when app is opened, not pushed)
-- JWT authentication, BCrypt password hashing
+## Table of Contents
+- [What This Does](#what-this-does)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Key Features](#key-features)
+- [Running Locally](#running-locally)
+- [API Integration Pattern](#api-integration-pattern)
+- [How Frontend and Backend Connect](#how-frontend-and-backend-connect)
+- [What's Built](#whats-built)
+- [Roadmap](#roadmap)
+- [Known Limitations](#known-limitations)
+- [What This Project Demonstrates](#what-this-project-demonstrates)
+- [Author](#author)
 
 ---
 
-## Tech stack
+## What This Does
+
+Citizens open the app, photograph a civic problem, tap submit. The app captures GPS coordinates automatically, sends the photo to the backend, and displays the Gemini AI analysis result — issue type, severity, responsible department, and coins earned — within 3–5 seconds. No manual categorization, no form-filling beyond an optional description.
+
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Mobile app | Flutter (Dart) |
-| Backend | Spring Boot 3.5 (Java 17), Maven |
-| Database | MySQL 8 with Spring Data JPA / Hibernate |
-| Authentication | Spring Security + JWT, BCrypt |
-| AI / computer vision | Google Cloud Vision API (Label Detection only) |
-| Image handling | Multipart upload, local filesystem storage |
-| Maps | Google Maps Flutter plugin (for hotspot view) |
+| Framework | Flutter 3.32, Dart 3.8 |
+| State Management | Provider |
+| HTTP | `dart:http` (multipart for image upload) |
+| Storage | `flutter_secure_storage` (JWT token) |
+| Location | `geolocator` + `geocoding` |
+| Image | `image_picker` |
+| Navigation | `page_transition` |
+| Theme | Dynamic light/dark mode via `ThemeNotifier` |
 
-This repo is the Flutter frontend only. Backend lives at [swachh-drishti-backend](https://github.com/awaneetdecoder/swachh-drishti-backend).
-
----
-
-## Architecture at a glance
-
-```
-Citizen takes photo
-        │
-        ▼
-Flutter app (GPS + image)
-        │  multipart POST, JWT bearer token
-        ▼
-Spring Boot REST API
-        │
-        ├─► Google Cloud Vision API → raw labels + confidence
-        ├─► My mapping logic → garbage type + severity score
-        ├─► MySQL → report saved, coins awarded if verified
-        └─► Response → severity, coins, status returned to app
-```
-
----
-
-## Getting started
-
-### Prerequisites
-
-- Flutter SDK (3.x or later)
-- Android Studio or Xcode for emulator/device testing
-- A running instance of the [SwachhDrishti backend](https://github.com/awaneetdecoder/swachh-drishti-backend) (Spring Boot + MySQL)
-
-### Installation
-
-```sh
-git clone https://github.com/awaneetdecoder/swachh-drishti.git
-cd swachh-drishti
-flutter pub get
-```
-
-Open `lib/api_config.dart` and set the base URL:
-```dart
-static const String _baseUrl = 'http://10.0.2.2:8080'; // Android emulator
-```
-
-```sh
-flutter run
-```
-
-> The backend must be running before the app can log in or submit reports.
-
----
-
-## Project structure
+## Project Structure
 
 ```
 lib/
-├── main.dart
-├── auth_screen.dart
-├── signup_screen.dart
-├── main_shell.dart              # Bottom nav: Home, Activity, Report, Profile
-├── api_config.dart
-├── theme_notifier.dart
-│
-├── screens/
-│   ├── home_screen.dart
-│   ├── reporter_screen.dart     # Camera + GPS + report submission
-│   ├── activity_screen.dart     # User's report history
-│   └── profile_screen.dart
-│
-├── services/
-│   └── secure_storage_service.dart   # JWT storage
-│
+├── main.dart                    # App entry, theme setup, auth check on startup
+├── auth_screen.dart             # Login with JWT
+├── signup_screen.dart           # Registration
+├── main_shell.dart              # Bottom nav shell
+├── api_config.dart              # Single source of truth for all API endpoints
+├── theme_notifier.dart          # Light/dark mode state
 ├── models/
-│   └── report_model.dart
-│
+│   ├── issue_model.dart         # Typed model for Issue API response
+│   └── report_model.dart        # Legacy report model
+├── screens/
+│   ├── home_screen.dart         # Landing/dashboard
+│   ├── reporter_screen.dart     # Photo + GPS + submit flow
+│   ├── activity_screen.dart     # User's own reports
+│   └── profile_screen.dart      # Coins, settings, dark mode toggle
+├── services/
+│   ├── gemini_service.dart      # Direct Gemini API call from Flutter
+│   └── secure_storage_service.dart  # JWT save/read/delete
 └── widget/
-    ├── app_logo.dart
-    └── activity_list_item.dart
+    ├── activity_list_item.dart  # Report card widget
+    └── app_logo.dart            # Shared logo widget
 ```
 
----
+## Key Features
 
-## Honest current limitations
+**Automatic GPS capture.** Location fetches on button tap using `geolocator` with high accuracy. Coordinates are stored in state and sent with every report; `geocoding` reverse-resolves them to a readable address for display.
 
-- Solo personal project, not yet used or tested by anyone outside development.
-- Hotspot map view is not built yet — clustering query exists on the backend, but there's no Flutter screen displaying it.
-- Leaderboard is not built yet.
-- Status updates are pull-based (shown on app open), not pushed.
-- No automated test suite yet.
-- Not deployed — runs locally against a local backend.
+**Secure JWT storage.** After login, the token is stored using `flutter_secure_storage` — backed by Android Keystore on Android and Keychain on iOS. Every authenticated request reads this token and sends it in the `Authorization: Bearer` header.
 
----
+**Multipart image upload.** Report submission uses `http.MultipartRequest` to send the image file alongside text fields (latitude, longitude, address, description) in a single HTTP request. The backend's `@RequestPart` and `@RequestParam` annotations receive them separately.
+
+**Gemini analysis display.** On successful submission, a dialog shows the AI result — issue type, severity, responsible department, citizen advisory, and coins awarded — and resets the form on dismissal.
+
+**Dynamic theme.** Light and dark themes are defined in `main.dart` via `ThemeData`. A `ThemeNotifier` (`ChangeNotifier`) stores the active mode and exposes a toggle; the profile screen's switch calls `toggleTheme()`, and the whole app re-renders through `Consumer<ThemeNotifier>`.
+
+**Auto login check.** On startup, `main.dart` reads the stored JWT. If present and non-empty, the user lands directly on `MainShell`, skipping the login screen; otherwise they see `AuthScreen`. This runs inside a `FutureBuilder` with a loading spinner while the check completes.
+
+## Running Locally
+
+**Prerequisites:** Flutter 3.32+, Android Studio or VS Code with the Flutter extension, an Android emulator or physical device.
+
+```bash
+git clone https://github.com/awaneetdecoder/civicnexus-app
+cd civicnexus-app
+flutter pub get
+```
+
+Update `lib/api_config.dart`:
+```dart
+// For Android emulator
+static const String _baseUrl = 'http://10.0.2.2:8080';
+
+// For physical device (use your PC's local IP)
+static const String _baseUrl = 'http://192.168.x.x:8080';
+
+// For a deployed backend
+static const String _baseUrl = 'https://civicnexus-backend.onrender.com';
+```
+
+```bash
+flutter run
+```
+
+**Note:** Android 9+ blocks plain HTTP by default. For local development, `android/app/src/main/res/xml/network_security_config.xml` is configured to allow cleartext traffic to `10.0.2.2` and `localhost`.
+
+## API Integration Pattern
+
+Every screen that fetches data follows this exact pattern:
+
+```dart
+// 1. Declare future in state
+Future<List<IssueModel>>? _issuesFuture;
+
+// 2. Start fetch in initState
+@override
+void initState() {
+  super.initState();
+  _issuesFuture = _fetchIssues();
+}
+
+// 3. Use FutureBuilder in build
+FutureBuilder<List<IssueModel>>(
+  future: _issuesFuture,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting)
+      return CircularProgressIndicator();
+    if (snapshot.hasError)
+      return Text('Error: ${snapshot.error}');
+    return ListView(children: snapshot.data!.map(...).toList());
+  },
+)
+```
+
+This pattern handles loading, error, and data states explicitly — no unhandled nulls.
+
+## How Frontend and Backend Connect
+
+```
+Flutter                              Spring Boot
+───────                              ───────────
+
+1. User taps Login
+   │
+   ├── http.post(/api/auth/login)
+   │   Body: {email, password} JSON
+   │                                 JwtAuthFilter skips (public endpoint)
+   │                                 AuthController.login()
+   │                                 AuthService validates credentials
+   │                                 JwtService.generateToken(user)
+   │                                 Returns {token, name, email, coins}
+   │
+   ├── SecureStorageService.saveToken(token)
+   └── Navigate to MainShell
+
+2. User submits report
+   │
+   ├── http.MultipartRequest POST /api/issues
+   │   Header: Authorization: Bearer <token>
+   │   Fields: latitude, longitude, address
+   │   File: image
+   │                                 JwtAuthFilter intercepts
+   │                                 Extracts token from header
+   │                                 JwtService.extractEmail(token)
+   │                                 UserRepository.findByEmail()
+   │                                 Sets SecurityContext
+   │                                 IssueController.submitIssue()
+   │                                 @AuthenticationPrincipal User → current user
+   │                                 IssueService.submitIssue()
+   │                                   → saveImageLocally()
+   │                                   → GeminiService.analyzeIssue()
+   │                                   → issueRepository.save()
+   │                                   → update user coins
+   │                                 Returns IssueResponse JSON
+   │
+   └── Parse response → show success dialog with AI analysis
+```
+
+## What's Built
+
+- [x] JWT auth — login, signup, auto-login check on startup
+- [x] GPS auto-capture and reverse geocoding on the report flow
+- [x] Multipart photo + GPS submission to the backend
+- [x] Client-side Gemini pre-submission preview for instant feedback
+- [x] Activity screen — user's own report history via the `FutureBuilder` pattern
+- [x] Profile screen — coins, settings, dark mode toggle
+- [x] Secure token storage via platform Keystore/Keychain
 
 ## Roadmap
 
-- [x] JWT auth (signup/login)
-- [x] Photo + GPS report submission
-- [x] Severity classification + AI-verified rewards
-- [ ] Hotspot map screen (Google Maps Flutter plugin, backend query already exists)
-- [ ] Leaderboard screen
-- [ ] Get a small group of real users to test it
-- [ ] Push notifications on status change
+- [ ] Issue map screen — `GET /api/issues/all` and `IssueModel` already exist on the backend side; the interactive map UI consuming them is the remaining piece
+- [ ] Resolution flow UI for municipal workers, gated behind the backend's planned role-based access control
+- [ ] Move the client-side Gemini call behind a backend proxy endpoint (see [Known Limitations](#known-limitations))
+- [ ] Push notifications on issue status change (currently pull-based, refreshed on screen load)
+- [ ] Widget and integration test suite
 
----
+## Known Limitations
+
+**Gemini API key is embedded in the client.** `gemini_service.dart` calls Gemini directly for a fast pre-submission preview, which means the key ships inside the compiled app and can be extracted by anyone who decompiles it. The backend's own server-side key — used for the authoritative analysis — is not exposed this way. The fix is straightforward: route the preview call through a lightweight backend proxy endpoint instead of calling Gemini from the client at all.
+
+**No offline support.** Report submission requires an active connection; there's no local queueing for spotty connectivity, which matters for the field conditions this app is actually designed for.
+
+## What This Project Demonstrates
+
+- Building a complete mobile client against a real, self-built REST API — multipart uploads, JWT-secured requests, structured AI responses
+- Secure credential handling using platform-native secure storage rather than shared preferences
+- Disciplined async data loading — every fetch goes through an explicit loading/error/data state machine, not optimistic rendering
+- Understanding of Android's network security model, not just working around an error message
+- The ability to identify a project's own client-side security gap and describe the correct fix, rather than leaving it unexamined
 
 ## Author
 
 **Awaneet Mishra**
-- GitHub: [@awaneetdecoder](https://github.com/awaneetdecoder)
-- Email: awaneet03991@gmail.com
-
----
+[@awaneetdecoder](https://github.com/awaneetdecoder) · awaneet03991@gmail.com
 
 ## License
 
