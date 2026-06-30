@@ -2,7 +2,7 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.32-02569B?logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.8-0175C2?logo=dart&logoColor=white)
-![Gemini](https://img.shields.io/badge/AI-Gemini%201.5%20Flash-8E44AD)
+![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-8E44AD)
 ![Status](https://img.shields.io/badge/status-core%20complete-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
